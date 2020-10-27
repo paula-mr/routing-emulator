@@ -1,11 +1,9 @@
-from datetime import datetime
-
-class Topology:
+class Neighbors:
     def __init__(self):
         self.links = {}
     
-    def add(self, ip, weight):
-        self.links[ip] = {'weight': weight, 'last_updated_at': datetime.now()}
+    def add(self, ip, weight, learned_from = None):
+        self.links[ip] = weight
     
     def delete(self, ip):
         self.links.pop(ip, None)
