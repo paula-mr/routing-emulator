@@ -2,7 +2,7 @@ class Neighbors:
     def __init__(self):
         self.links = {}
     
-    def add(self, ip, weight, learned_from = None):
+    def add(self, ip, weight):
         self.links[ip] = weight
     
     def delete(self, ip):
