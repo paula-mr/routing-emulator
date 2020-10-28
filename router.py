@@ -35,9 +35,22 @@ def main():
             return
 
 
-def create_update_message(table, source, destination_ip):
-    message = UpdateMessage(source, destination_ip)
-    message.distances = table.generate_distances(destination_ip)
+def send_update_messages(routing_table, current_ip, neighbors):
+    messages = list(
+        map(
+            lambda ip_weight: create_update_message(
+                routing_table, current_ip, ip_weight[0], ip_weight[1]
+            ),
+            neighbors.links.items(),
+        )
+    )
+
+
+def create_update_message(table, current_ip, destination_ip, destination_link_weight):
+    message = UpdateMessage(current_ip, destination_ip)
+    distances = table.generate_distances(destination_ip, destination_link_weight)
+    distances[current_ip] = destination_link_weight
+    message.distances
     return message
 
 
