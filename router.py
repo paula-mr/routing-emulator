@@ -12,6 +12,13 @@ def main():
         command = input()
         if command == "quit":
             return
+        elif command == "add":
+            return
+        elif command == "del":
+            return
+        else:
+            print("comando errado")
+            return
 
 
 if __name__ == "__main__":
