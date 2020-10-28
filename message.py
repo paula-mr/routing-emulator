@@ -10,6 +10,9 @@ class DataMessage(Message):
         Message.__init__(self, "data", source, destination)
         self.payload = None
 
+    def print_payload(self):
+        print(self.payload)
+
 
 class TraceMessage(Message):
     def __init__(self, source, destination):
