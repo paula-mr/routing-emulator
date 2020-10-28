@@ -13,8 +13,14 @@ def main():
         if command == "quit":
             return
         elif command == "add":
+            neighbor_ip = input()
+            weight = int(input())
             return
         elif command == "del":
+            neighbor_ip = input()
+            return
+        elif command == "trace":
+            destination_ip = input()
             return
         else:
             print("comando errado")
