@@ -13,11 +13,13 @@ def main():
         if command == "quit":
             return
         elif command == "add":
-            neighbor_ip = input()
+            ip = input()
             weight = int(input())
+            neighbors.add(ip, weight)
             return
         elif command == "del":
-            neighbor_ip = input()
+            ip = input()
+            neighbors.delete(ip)
             return
         elif command == "trace":
             destination_ip = input()
