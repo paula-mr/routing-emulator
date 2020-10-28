@@ -11,8 +11,10 @@ class RoutingInformation:
 
 
 def passes_split_horizon(destination_ip):
-    def for_ip(k, v):
-        return k != destination_ip and v.source_ip != destination_ip
+    def for_ip(key_value):
+        return (
+            key_value[0] != destination_ip and key_value[1].source_ip != destination_ip
+        )
 
     return for_ip
 
@@ -25,10 +27,10 @@ class RoutingTable:
         self.links[ip] = RoutingInformation(weight, source_ip, next_hop)
 
     def split_horizon(self, destination_ip):
-        return filter(passes_split_horizon(destination_ip), self.links.items())
+        return list(filter(passes_split_horizon(destination_ip), self.links.items()))
 
     def generate_distances(self, destination_ip):
         def extract_info(dic, table_row_info):
             dic[table_row_info.ip] = table_row_info.weight + self.links[destination_ip]
 
-        return reduce(extract_info, self.split_horizon(destination_ip), {})
+        return list(reduce(extract_info, self.split_horizon(destination_ip), {}))
