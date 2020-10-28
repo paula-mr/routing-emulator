@@ -2,6 +2,7 @@ import sys
 from neighbors import Neighbors
 from routing_table import RoutingTable
 from message import UpdateMessage
+from server import Server
 
 
 def main():
@@ -14,6 +15,8 @@ def main():
         # todo: abrir e ler arquivo
     neighbors = Neighbors()
     routing_table = RoutingTable()
+    server = Server()
+    sock = server.create_socket(address)
     while True:
         command = input()
         if command == "quit":
