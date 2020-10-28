@@ -24,11 +24,11 @@ class RoutingTable:
     def add(self, ip, weight, source_ip, next_hop):
         self.links[ip] = RoutingInformation(weight, source_ip, next_hop)
 
-    def split_horizon(self, table, destination_ip):
-        return filter(passes_split_horizon(destination_ip), table.items())
+    def split_horizon(self, destination_ip):
+        return filter(passes_split_horizon(destination_ip), self.links.items())
 
-    def generate_distances(self, table, destination_ip):
+    def generate_distances(self, destination_ip):
         def extract_info(dic, table_row_info):
             dic[table_row_info.ip] = table_row_info.weight + self.links[destination_ip]
 
-        return reduce(extract_info, self.split_horizon(table, destination_ip), {})
+        return reduce(extract_info, self.split_horizon(destination_ip), {})
