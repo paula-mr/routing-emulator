@@ -27,6 +27,7 @@ def main():
         send_update_messages,
         argument=(server, routing_table, address, neighbors),
     )
+    scheduler.run()
     while True:
         command = input()
         if command == "quit":
