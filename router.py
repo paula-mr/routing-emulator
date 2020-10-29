@@ -1,4 +1,6 @@
 import sys
+import sched, time
+
 from neighbors import Neighbors
 from routing_table import RoutingTable
 from message import UpdateMessage
@@ -9,7 +11,7 @@ def main():
     print("Number of arguments:", len(sys.argv), "arguments.")
     print("Argument List:", str(sys.argv))
     address = sys.argv[1]
-    pi_period = sys.argv[2]
+    pi_period = float(sys.argv[2])
     if len(sys.argv) == 4:
         filepath = sys.argv[3]
         # todo: abrir e ler arquivo
@@ -17,6 +19,14 @@ def main():
     routing_table = RoutingTable()
     server = Server(address)
     server.create_socket()
+
+    scheduler = sched.scheduler(time.time, time.sleep)
+    scheduler.enter(
+        pi_period,
+        1,
+        send_update_messages,
+        argument=(server, routing_table, address, neighbors),
+    )
     while True:
         command = input()
         if command == "quit":
@@ -38,11 +48,13 @@ def main():
             return
 
 
-def send_update_messages(routing_table, current_ip, neighbors):
-    return [
+def send_update_messages(server, routing_table, current_ip, neighbors):
+    messages = [
         create_update_message(routing_table, current_ip, neighbor[0], neighbor[1])
         for neighbor in neighbors.links.items()
     ]
+    for message in messages:
+        server.send_message(message.destination, message.serialize())
 
 
 def create_update_message(table, current_ip, destination_ip, destination_link_weight):
