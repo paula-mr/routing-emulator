@@ -46,7 +46,7 @@ def main():
 
 class UpdateRoutesThread(Thread):
     def __init__(self, pi_period, server, routing_table, address, neighbors):
-        super().__init__(self)
+        Thread.__init__(self)
         self.pi_period = pi_period
         self.server = server
         self.routing_table = routing_table
@@ -58,6 +58,7 @@ class UpdateRoutesThread(Thread):
         send_update_messages(self.server, self.routing_table, self.address, self.neighbors)
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
+    print("Send update messages")
     messages = [
         create_update_message(routing_table, current_ip, neighbor[0], neighbor[1])
         for neighbor in neighbors.links.items()
