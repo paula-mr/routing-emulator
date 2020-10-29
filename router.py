@@ -1,4 +1,6 @@
 import sys
+import sched, time
+
 from neighbors import Neighbors
 from routing_table import RoutingTable
 from message import UpdateMessage
@@ -17,6 +19,9 @@ def main():
     routing_table = RoutingTable()
     server = Server(address)
     server.create_socket()
+
+    scheduler = sched.scheduler(time.time, time.sleep)
+    scheduler.enter(pi_period, 1, send_update_messages, argument=(server, routing_table, address, neighbors))
     while True:
         command = input()
         if command == "quit":
@@ -38,7 +43,8 @@ def main():
             return
 
 
-def send_update_messages(routing_table, current_ip, neighbors):
+def send_update_messages(server, routing_table, current_ip, neighbors):
+    print("SENDING UPDATE MESSAGES")
     messages = list(
         map(
             lambda ip_weight: create_update_message(
@@ -47,6 +53,9 @@ def send_update_messages(routing_table, current_ip, neighbors):
             neighbors.links.items(),
         )
     )
+
+    for message in messages:
+        server.send_message(message.destination, message.serialize())
 
 
 def create_update_message(table, current_ip, destination_ip, destination_link_weight):
