@@ -39,14 +39,10 @@ def main():
 
 
 def send_update_messages(routing_table, current_ip, neighbors):
-    messages = list(
-        map(
-            lambda ip_weight: create_update_message(
-                routing_table, current_ip, ip_weight[0], ip_weight[1]
-            ),
-            neighbors.links.items(),
-        )
-    )
+    return [
+        create_update_message(routing_table, current_ip, neighbor[0], neighbor[1])
+        for neighbor in neighbors.links.items()
+    ]
 
 
 def create_update_message(table, current_ip, destination_ip, destination_link_weight):
