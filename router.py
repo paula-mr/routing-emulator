@@ -22,6 +22,7 @@ def main():
 
     scheduler = sched.scheduler(time.time, time.sleep)
     scheduler.enter(pi_period, 1, send_update_messages, argument=(server, routing_table, address, neighbors))
+    scheduler.run()
     while True:
         command = input()
         if command == "quit":
