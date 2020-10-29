@@ -1,11 +1,11 @@
 import sys
-import sched, time
+import time
 
 from neighbors import Neighbors
 from routing_table import RoutingTable
 from message import UpdateMessage
 from server import Server
-
+from threading import Thread
 
 def main():
     print("Number of arguments:", len(sys.argv), "arguments.")
@@ -20,14 +20,9 @@ def main():
     server = Server(address)
     server.create_socket()
 
-    scheduler = sched.scheduler(time.time, time.sleep)
-    scheduler.enter(
-        pi_period,
-        1,
-        send_update_messages,
-        argument=(server, routing_table, address, neighbors),
-    )
-    scheduler.run()
+    update_routes = UpdateRoutesThread(pi_period, server, routing_table, address, neighbors)
+    update_routes.start()
+
     while True:
         command = input()
         if command == "quit":
@@ -48,6 +43,19 @@ def main():
             print("comando errado")
             return
 
+
+class UpdateRoutesThread(Thread):
+    def __init__(self, pi_period, server, routing_table, address, neighbors):
+        super().__init__(self)
+        self.pi_period = pi_period
+        self.server = server
+        self.routing_table = routing_table
+        self.address = address
+        self.neighbors = neighbors
+    
+    def run(self):
+        time.sleep(self.pi_period)
+        send_update_messages(self.server, self.routing_table, self.address, self.neighbors)
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
     messages = [
