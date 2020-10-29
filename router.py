@@ -53,7 +53,7 @@ def create_update_message(table, current_ip, destination_ip, destination_link_we
     message = UpdateMessage(current_ip, destination_ip)
     distances = table.generate_distances(destination_ip, destination_link_weight)
     distances[current_ip] = destination_link_weight
-    message.distances
+    message.distances = distances
     return message
 
 
