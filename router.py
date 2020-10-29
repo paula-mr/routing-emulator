@@ -15,8 +15,8 @@ def main():
         # todo: abrir e ler arquivo
     neighbors = Neighbors()
     routing_table = RoutingTable()
-    server = Server()
-    sock = server.create_socket(address)
+    server = Server(address)
+    server.create_socket()
     while True:
         command = input()
         if command == "quit":
