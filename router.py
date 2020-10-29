@@ -11,7 +11,7 @@ def main():
     print("Number of arguments:", len(sys.argv), "arguments.")
     print("Argument List:", str(sys.argv))
     address = sys.argv[1]
-    pi_period = sys.argv[2]
+    pi_period = float(sys.argv[2])
     if len(sys.argv) == 4:
         filepath = sys.argv[3]
         # todo: abrir e ler arquivo
