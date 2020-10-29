@@ -54,8 +54,9 @@ class UpdateRoutesThread(Thread):
         self.neighbors = neighbors
     
     def run(self):
-        time.sleep(self.pi_period)
-        send_update_messages(self.server, self.routing_table, self.address, self.neighbors)
+        while True:
+            time.sleep(self.pi_period)
+            send_update_messages(self.server, self.routing_table, self.address, self.neighbors)
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
     print("Send update messages")
