@@ -20,6 +20,7 @@ class RoutingTable:
 
     def add(self, ip, weight, source_ip, next_hop):
         self.links[ip] = RoutingInformation(weight, source_ip, next_hop)
+        print('added', self.links[ip])
 
     def delete(self, ip):
         self.links.pop(ip, None)
