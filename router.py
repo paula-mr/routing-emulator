@@ -36,10 +36,12 @@ def main():
             ip = input()
             weight = int(input())
             neighbors.add(ip, weight)
+            routing_table.add(ip, weight, address, ip)
             return
         elif command == "del":
             ip = input()
             neighbors.delete(ip)
+            routing_table.delete(ip)
             return
         elif command == "trace":
             destination_ip = input()
@@ -72,7 +74,6 @@ class RemoveOldRoutesThread(Thread):
     
     def run(self):
         while True:
-            print("Remove old routes")
             time.sleep(self.pi_period)
             for route in self.routing_table.links:
                 now = datetime.now()
