@@ -1,6 +1,8 @@
 import sys
 import time
 
+from datetime import datetime
+
 from neighbors import Neighbors
 from routing_table import RoutingTable
 from message import UpdateMessage
@@ -22,6 +24,9 @@ def main():
 
     update_routes = UpdateRoutesThread(pi_period, server, routing_table, address, neighbors)
     update_routes.start()
+
+    remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table)
+    remove_old_routes.start()
 
     while True:
         command = input()
@@ -57,6 +62,26 @@ class UpdateRoutesThread(Thread):
         while True:
             time.sleep(self.pi_period)
             send_update_messages(self.server, self.routing_table, self.address, self.neighbors)
+
+
+class RemoveOldRoutesThread(Thread):
+    def __init__(self, pi_period, routing_table):
+        Thread.__init__(self)
+        self.pi_period = pi_period
+        self.routing_table = routing_table
+    
+    def run(self):
+        while True:
+            print("Remove old routes")
+            time.sleep(self.pi_period)
+            for route in self.routing_table.links:
+                now = datetime.now()
+                diff_time = now - self.routing_table(route).last_updated_at
+                if diff_time.seconds >= 4*self.pi_period:
+                    print("Deleting ", route)
+                    self.routing_table.delete(route)
+                    
+
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
     print("Send update messages")

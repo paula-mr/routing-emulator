@@ -21,6 +21,9 @@ class RoutingTable:
     def add(self, ip, weight, source_ip, next_hop):
         self.links[ip] = RoutingInformation(weight, source_ip, next_hop)
 
+    def delete(self, ip):
+        self.links.pop(ip, None)
+
     def split_horizon(self, destination_ip):
         return [item for item in self.links.items() if passes_split_horizon(destination_ip, item)]
 
