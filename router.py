@@ -26,19 +26,18 @@ def main():
     while True:
         command = input()
         if command == "quit":
-            return
+            pass
         elif command == "add":
             ip = input()
             weight = int(input())
             neighbors.add(ip, weight)
-            return
         elif command == "del":
             ip = input()
             neighbors.delete(ip)
-            return
         elif command == "trace":
             destination_ip = input()
-            return
+            message = TraceMessage(server.address, destination_ip)
+            server.send_message(message)
         else:
             print("comando errado")
             return
