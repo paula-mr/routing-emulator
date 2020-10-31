@@ -57,7 +57,7 @@ def main():
             if len(command) != 2:
                 print('Invalid arguments.')
                 return
-                
+
             destination_ip = command[1]
             return
         else:
@@ -90,7 +90,7 @@ class RemoveOldRoutesThread(Thread):
     def run(self):
         while True:
             time.sleep(self.pi_period)
-            for route in self.routing_table.links:
+            for route in self.routing_table.list_all():
                 print("Checking route ", route)
                 now = datetime.now()
                 diff_time = now - self.routing_table(route).last_updated_at
