@@ -25,7 +25,7 @@ def main():
     update_routes = UpdateRoutesThread(pi_period, server, routing_table, address, neighbors)
     update_routes.start()
 
-    remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table)
+    remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table, neighbors)
     remove_old_routes.start()
 
     while True:
@@ -67,20 +67,24 @@ class UpdateRoutesThread(Thread):
 
 
 class RemoveOldRoutesThread(Thread):
-    def __init__(self, pi_period, routing_table):
+    def __init__(self, pi_period, routing_table, neighbors):
         Thread.__init__(self)
         self.pi_period = pi_period
         self.routing_table = routing_table
+        self.neighbors = neighbors
     
     def run(self):
         while True:
             time.sleep(self.pi_period)
+            print("Deleting old routes")
             for route in self.routing_table.links:
+                print("Checking route ", route)
                 now = datetime.now()
                 diff_time = now - self.routing_table(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
                     print("Deleting ", route)
                     self.routing_table.delete(route)
+                    self.neighbors.delete(route)
                     
 
 
