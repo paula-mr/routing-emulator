@@ -22,9 +22,6 @@ class RoutingTable:
         self.links[ip] = RoutingInformation(weight, source_ip, next_hop)
         print('added', self.links[ip])
 
-    def list_all(self):
-        return self.links
-
     def delete(self, ip):
         self.links.pop(ip, None)
 
