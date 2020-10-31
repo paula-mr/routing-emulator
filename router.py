@@ -76,7 +76,6 @@ class RemoveOldRoutesThread(Thread):
     def run(self):
         while True:
             time.sleep(self.pi_period)
-            print("Deleting old routes")
             for route in self.routing_table.links:
                 print("Checking route ", route)
                 now = datetime.now()
@@ -89,7 +88,6 @@ class RemoveOldRoutesThread(Thread):
 
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
-    print("Send update messages")
     messages = [
         create_update_message(routing_table, current_ip, neighbor[0], neighbor[1])
         for neighbor in neighbors.links.items()
