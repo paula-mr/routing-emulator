@@ -29,22 +29,36 @@ def main():
     remove_old_routes.start()
 
     while True:
-        command = input()
-        if command == "quit":
+        command = input('')
+        command.strip()
+        command = command.split(' ')
+        if command[0] == "quit":
             return
-        elif command == "add":
-            ip = input()
-            weight = int(input())
+        elif command[0] == "add":
+            if len(command) != 3:
+                print('Invalid arguments.')
+                return
+
+            ip = command[1]
+            weight = int(command[2])
             neighbors.add(ip, weight)
             routing_table.add(ip, weight, address, ip)
             return
-        elif command == "del":
-            ip = input()
+        elif command[0] == "del":
+            if len(command) != 2:
+                print('Invalid arguments.')
+                return
+
+            ip = command[1]
             neighbors.delete(ip)
             routing_table.delete(ip)
             return
-        elif command == "trace":
-            destination_ip = input()
+        elif command[0] == "trace":
+            if len(command) != 2:
+                print('Invalid arguments.')
+                return
+                
+            destination_ip = command[1]
             return
         else:
             print("comando errado")
