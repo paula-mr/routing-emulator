@@ -8,18 +8,16 @@ class MessageHandler:
 
     @staticmethod
     def handle_trace(message, current_ip):
-        # adicionar proprio ip à lista de hops do trace (message.hops)
+        # sempre adicionar proprio ip à lista de hops do trace (message.hops)
         message.hops.append(current_ip)
         # verificar se é destino do trace
-        if message.destination != current_ip:
-            # se não for destino: enviar pelo caminho mais curto ao destino
-            pass
-        else:
-            # se for destino: enviar mensagem de data para a origem. Payload = json da propria msg de trace
+        if message.destination == current_ip:
+            # se current for destino: enviar mensagem de data para a origem. Payload = json da propria msg de trace
             data_message = DataMessage(current_ip, message.source)
             data_message.payload = json.dumps(message.__dict__)
-            # todo: enviar a mensagem
-            pass
+            return message, message.source
+        else:
+            return message, message.destination
 
     @staticmethod
     def handle_update(message):

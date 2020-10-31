@@ -5,7 +5,7 @@ from datetime import datetime
 
 from neighbors import Neighbors
 from routing_table import RoutingTable
-from message import UpdateMessage
+from message import UpdateMessage, TraceMessage
 from server import Server
 from threading import Thread
 
@@ -59,9 +59,8 @@ def main():
                 return
 
             destination_ip = command[1]
-            return
-        else:
-            print("comando errado")
+            message = TraceMessage(address, destination_ip)
+            server.send_message(address, message)
             return
 
 
