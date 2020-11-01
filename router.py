@@ -52,7 +52,7 @@ def add_neighbor(ip, weight, current_address, neighbors, routing_table):
 
 def get_startup_arguments():
     try:
-		opts, args = getopt.getopt(argv,'a:u:s:',[ 'addr=', 'update-period=', 'startup-commands=' ])
+        opts, args = getopt.getopt(argv,'a:u:s:',['addr=', 'update-period=', 'startup-commands='])
 	except getopt.GetoptError:
 		print("router.py <ADDR> <PERIOD> [STARTUP]")
         os._exit(1)
