@@ -85,15 +85,14 @@ def read_file(file_name, address, neighbors, routing_table):
 			commands = command.split(" ")
 			if commands[0] != 'add':
 				print("Invalid command was read in startup file:", commands[0])
-			if len(commands) != 3:
+			elif len(commands) != 3:
 				print("Invalid format was read in startup file:", commands)
-			else:
-				if is_ip_valid(commands[1]):
+			elif is_ip_valid(commands[1]):
 					print("Invalid IP address.")
-				else:
-                    ip = commands[1]
-                    weight = commands[2]
-                    add_neighbor(ip, weight, address, neighbors, routing_table)
+            else:
+                ip = commands[1]
+                weight = commands[2]
+                add_neighbor(ip, weight, address, neighbors, routing_table)
 
 
 def is_ip_valid(address):
