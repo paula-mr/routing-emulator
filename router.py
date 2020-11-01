@@ -28,6 +28,9 @@ def main():
     remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table, neighbors)
     remove_old_routes.start()
 
+    listener = Listener(server, routing_table)
+    listener.start()
+
     while True:
         command = input()
         command.strip()
@@ -62,6 +65,25 @@ def main():
             message = TraceMessage(address, destination_ip)
             server.send_message(address, message)
             return
+
+
+class Listener(Thread):
+    def __init__(self, server, routing_table):
+        Thread.__init__(self)
+        self.server = server
+        self.routing_table = routing_table
+    
+    def run(self):
+        while True:
+            message, _ = self.server.receive_message()
+            message_type = message.get('type', None)
+            if message_type == "trace":
+                self.routing_table.handle_trace(message, self.server.address)
+            if message_type == "update":
+                self.routing_table.handle_update(message)
+            if message_type == "data":
+                self.routing_table.handle_data(message)
+
 
 
 class UpdateRoutesThread(Thread):

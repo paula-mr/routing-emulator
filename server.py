@@ -1,4 +1,5 @@
 import socket
+import json
 
 class Server:
     def __init__(self, address):
@@ -17,5 +18,5 @@ class Server:
     
     def receive_message(self):
         data, address = self.sock.recvfrom(1024)
-        return data, address
+        return json.loads(data.decode()), address
         

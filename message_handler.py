@@ -1,6 +1,6 @@
 from message import DataMessage
 import json
-
+from math import inf
 
 class MessageHandler:
     def __init__(self):
@@ -19,19 +19,21 @@ class MessageHandler:
         else:
             return message, message.destination
 
-    @staticmethod
-    def handle_update(message):
-        pass
+    # @staticmethod
+    def handle_update(self, message, current_ip):
+        #todo transformar message.distances em dicionario de RoutingInformation
+        self.links[message.source] = message.distances
+        dist_to_source = self.links[current_ip][message.source].weight
+        for destination, weight in message.distances.items():    
+            #se nó x (current) recebeu de A:
+            #para cada vizinho v de A:
+            self.links[current_ip][destination] = min(
+                self.links[current_ip].get(destination, inf), 
+                dist_to_source + weight
+            )
+
 
     @staticmethod
     def handle_data(message):
-        print(message.payload)
+        print(message['payload'])
 
-    @staticmethod
-    def message_handler_dic(message_type):
-        if message_type == "trace":
-            return MessageHandler.handle_trace
-        if message_type == "update":
-            return MessageHandler.handle_update
-        if message_type == "data":
-            return MessageHandler.handle_data

@@ -55,3 +55,20 @@ class RoutingTable:
             )
             return accumulated_dic
         return reduce(extract_info, self.split_horizon(neighbor_ip), {})
+    
+    def handle_update(self, message):
+        now = datetime.now()
+        #todo transformar message.distances em dicionario de RoutingInformation
+        self.links[message['source']] = message['distances']
+        dist_to_source = self.links[self.current_ip][message['source']].weight
+        for destination, weight in message['distances'].items():    
+            #se nó x (current) recebeu de A:
+            #para cada vizinho v de A:
+            routing_info_to_destination.last_updated_at = now
+            current_optimal_weight = self.links[self.current_ip][destination].weight
+            weight_via_source = dist_to_source + weight
+            if (weight_via_source < current_optimal_weight):
+                routing_info_to_destination = self.links[self.current_ip]
+                routing_info_to_destination.weight = weight_via_source
+                routing_info_to_destination.next_hop = message['source']
+                routing_info_to_destination.source_ip = message['source']
