@@ -124,7 +124,7 @@ class RemoveOldRoutesThread(Thread):
                 now = datetime.now()
                 diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
-                    print("Deleting ", route)
+                    print("Deleted ", route)
                     self.neighbors.delete(route)
                     self.routing_table.delete(route)
                     

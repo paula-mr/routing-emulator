@@ -55,10 +55,10 @@ class RoutingTable:
         #     ),
         #     default=math.inf
         # )
+        self.links.pop(ip, None)
         self.links[self.current_ip][ip].weight = math.inf
 
         newest_min_value = math.inf
-        self.links.pop(ip, None)
         for neighbor_ip, inner_dic in self.links.items():
             if ip in inner_dic:
                 if (inner_dic[ip].weight < newest_min_value):
@@ -146,7 +146,7 @@ class RoutingTable:
             if item not in message['distances']:
                 print("MESSAGES DISTANCES DIC", message['distances'])
                 print("REMOVING OLD LINK", item)
-                self.links[self.current_ip].pop(item, None)
+                self.delete(item)
         
         self.p_links()
 
