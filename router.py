@@ -13,11 +13,11 @@ from message import UpdateMessage, TraceMessage
 from server import Server
 from threading import Thread
 
-def main():
-    print("Number of arguments:", len(sys.argv), "arguments.")
-    print("Argument List:", str(sys.argv))
+def main(argv):
+    print("Number of arguments:", len(argv), "arguments.")
+    print("Argument List:", str(argv))
 
-    address, pi_period, startup = get_startup_arguments(sys.argv)
+    address, pi_period, startup = get_startup_arguments(argv)
 
     neighbors = Neighbors()
     routing_table = RoutingTable(address)
