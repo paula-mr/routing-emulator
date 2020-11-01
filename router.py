@@ -60,8 +60,8 @@ def main():
             else:
                 destination_ip = command[1]
                 message = TraceMessage(address, destination_ip)
-                print('sending trace message', message.serialize())
-                server.send_message(destination_ip, message.serialize())
+                print('sending trace message', json.dumps(message))
+                server.send_message(destination_ip, json.dumps(message))
 
 
 class Listener(Thread):
