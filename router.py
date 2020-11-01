@@ -217,4 +217,4 @@ def create_update_message(table, current_ip, destination_ip, destination_link_we
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
