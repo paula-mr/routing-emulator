@@ -113,7 +113,7 @@ class RoutingTable:
                 routing_info_to_destination.next_hop = message['source']
                 routing_info_to_destination.source_ip = message['source']
         
-        for item in get_links_from_source(message['source']):
+        for item in self.get_links_from_source(message['source']):
             if item not in messages_distances_dic:
                 self.links[self.current_ip].pop(item, None)
         
