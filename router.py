@@ -78,11 +78,15 @@ class Listener(Thread):
             message, _ = self.server.receive_message()
             message_type = message.get('type', None)
             if message_type == "trace":
-                self.routing_table.handle_trace(message, self.server.address)
+                message, destination = self.routing_table.handle_trace(message, self.server.address)
+                if destination:
+                    self.server.send_message(destination, message.serialize())
             if message_type == "update":
                 self.routing_table.handle_update(message)
             if message_type == "data":
-                self.routing_table.handle_data(message)
+                message, destination = self.routing_table.handle_data(message)
+                if destination:
+                    self.server.send_message(destination, message.serialize())
 
 
 

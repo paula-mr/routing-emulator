@@ -1,6 +1,10 @@
+import math
+import json
+
 from datetime import datetime
 from functools import reduce
-import math
+
+from message import DataMessage
 
 class RoutingInformation:
     def __init__(self, weight, next_hop, source_ip):
@@ -55,20 +59,60 @@ class RoutingTable:
             )
             return accumulated_dic
         return reduce(extract_info, self.split_horizon(neighbor_ip), {})
+
+    def handle_data(self, message):
+        if message['destination'] == self.current_ip:
+            # se current for destino, printa a mensagem
+            print(message['payload'])
+            return None, None
+        else:
+            # se não, redireciona para o destino
+            return message, self.get_next_hop(message['destination'])
+
+    def handle_trace(self, message):
+        # sempre adicionar proprio ip à lista de hops do trace (message.hops)
+        message.get('hops', []).append(self.current_ip)
+        # verificar se é destino do trace
+        if message['destination'] == self.current_ip:
+            # se current for destino: enviar mensagem de data para a origem. Payload = json da propria msg de trace
+            data_message = DataMessage(self.current_ip, message['source'])
+            data_message.payload = json.dumps(message)
+            return data_message.__dict__, message['source']
+        else:
+            # se não, redireciona para o destino
+            return message, self.get_next_hop(message['destination'])
     
+    def get_next_hop(self, ip):
+        route = self.links[self.current_ip].get(ip, None)
+        if not route:
+            return None
+        else:
+            return route.next_hop
+
     def handle_update(self, message):
         now = datetime.now()
         #todo transformar message.distances em dicionario de RoutingInformation
-        self.links[message['source']] = message['distances']
-        dist_to_source = self.links[self.current_ip][message['source']].weight
-        for destination, weight in message['distances'].items():    
+        messages_distances_dic = message['distances'].items()
+        self.links[message['source']] = self.create_distances_info_dic(messages_distances_dic, message['source'])
+        weight_to_source = self.links[self.current_ip][message['source']].weight
+        for destination, weight in messages_distances_dic:    
             #se nó x (current) recebeu de A:
             #para cada vizinho v de A:
+            routing_info_to_destination = self.links[self.current_ip]
             routing_info_to_destination.last_updated_at = now
             current_optimal_weight = self.links[self.current_ip][destination].weight
-            weight_via_source = dist_to_source + weight
+            weight_via_source = weight_to_source + weight
             if (weight_via_source < current_optimal_weight):
-                routing_info_to_destination = self.links[self.current_ip]
                 routing_info_to_destination.weight = weight_via_source
                 routing_info_to_destination.next_hop = message['source']
                 routing_info_to_destination.source_ip = message['source']
+
+    def distance_tuple_to_routing_info(self, weight, source_ip):
+        routing_info = RoutingInformation(weight, None, source_ip)
+        return routing_info
+
+    def create_distances_info_dic(self, distances, source_ip):
+        dic = {}
+        for (ip, weight) in distances:
+            dic[ip] = self.distance_tuple_to_routing_info(weight, source_ip)
+        return dic
