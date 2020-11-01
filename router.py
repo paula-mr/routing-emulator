@@ -59,9 +59,11 @@ def main():
                 print('Invalid arguments.')
             else:
                 destination_ip = command[1]
-                message = TraceMessage(address, destination_ip)
-                print('sending trace message', json.dumps(message))
-                server.send_message(destination_ip, json.dumps(message))
+                message = TraceMessage(address, destination_ip) #Object of type TraceMessage is not JSON serializable
+                print('sending trace message', message.serialize())
+                next_hop = routing_table.get_next_hop(destination_ip)
+                if next_hop:
+                    server.send_message(next_hop, message.serialize())
 
 
 class Listener(Thread):
@@ -123,8 +125,8 @@ class RemoveOldRoutesThread(Thread):
                 diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
                     print("Deleting ", route)
-                    self.routing_table.delete(route)
                     self.neighbors.delete(route)
+                    self.routing_table.delete(route)
                     
 
 

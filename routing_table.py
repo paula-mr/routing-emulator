@@ -42,12 +42,41 @@ class RoutingTable:
         return self.links[self.current_ip].copy()
 
     def delete(self, ip):
-        self.links[self.current_ip].pop(ip, None)
+        # newest_min_value = min(
+        #     map(
+        #         lambda info: info.weight,
+        #         filter(
+        #             lambda dic_received_from_ip: dic_received_from_ip is not None, 
+        #             map(
+        #                 lambda dic: dic.get(ip, None), 
+        #                 self.links.values()
+        #             )
+        #         )
+        #     ),
+        #     default=math.inf
+        # )
+        self.links[self.current_ip][ip].weight = math.inf
+
+        newest_min_value = math.inf
         self.links.pop(ip, None)
+        for neighbor_ip, inner_dic in self.links.items():
+            if ip in inner_dic:
+                if (inner_dic[ip].weight < newest_min_value):
+                    source = neighbor_ip
+                    newest_min_value = inner_dic[ip].weight
+            else:
+                continue
+
+        if newest_min_value == math.inf:
+            self.links[self.current_ip].pop(ip, None)
+        else:
+            self.links[self.current_ip][ip].weight = newest_min_value
+            self.links[self.current_ip][ip].source_ip = source
+            self.links[self.current_ip][ip].next_hop = source
 
     @classmethod
     def passes_split_horizon(cls, destination_ip, route):
-        return route[0] != destination_ip and route[1] != destination_ip
+        return route[0] != destination_ip and route[1].source_ip != destination_ip
 
     def split_horizon(self, destination_ip):
         return [item for item in self.list_dv().items() if self.passes_split_horizon(destination_ip, item)]
@@ -124,10 +153,11 @@ class RoutingTable:
         return links_from_source.copy()
 
     def p_links(self):
-        for ip, neighbors in self.links.items():
-            print(f'rotas conhecidas de {ip}:')
-            for neighbor, route_info in neighbors.items():
-                print(f'{neighbor}->{route_info.weight}')
+        # for ip, neighbors in self.links.items():
+            # print(f'rotas recebidas de {ip}:')
+        neighbors = self.links[self.current_ip]
+        for neighbor, route_info in neighbors.items():
+            print(f'{neighbor}->{route_info.weight} source ip -> {route_info.source_ip}')
 
     def distance_tuple_to_routing_info(self, weight, source_ip):
         routing_info = RoutingInformation(weight, None, source_ip)
