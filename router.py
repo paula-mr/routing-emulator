@@ -57,7 +57,10 @@ def get_startup_arguments(argv):
         print("router.py <ADDR> <PERIOD> [STARTUP]")
         os._exit(1)
 
+    address = None
     startup = None
+    pi_period = None
+
     if opts:
         for opt, arg in opts:
             if opt in ('-a', '--addr'):
@@ -75,8 +78,13 @@ def get_startup_arguments(argv):
     if not is_ip_valid(address):
         print(f"Ip {address} is invalid.")
         os._exit(1)
+
+    if pi_period:
+        pi_period = float(pi_period)
+    else:
+        pi_period = 10
     
-    return address, float(pi_period), startup
+    return address, pi_period, startup
 
 def read_file(file_name, address, neighbors, routing_table):
     with open(file_name, "r") as f:
@@ -92,7 +100,7 @@ def read_file(file_name, address, neighbors, routing_table):
                     print("Invalid IP address.")
             else:
                 ip = commands[1]
-                weight = commands[2]
+                weight = int(commands[2])
                 add_neighbor(ip, weight, address, neighbors, routing_table)
 
 
