@@ -78,18 +78,18 @@ def get_startup_arguments():
     return address, float(pi_period), startup
 
 def read_file(file_name, address, neighbors, routing_table):
-	with open(file_name, "r") as f:
-		lines = f.readlines()
-		for line in lines:
-			command = line.replace('\n', '')
-			commands = command.split(" ")
-			if commands[0] != 'add':
-				print("Invalid command was read in startup file:", commands[0])
-			elif len(commands) != 3:
-				print("Invalid format was read in startup file:", commands)
-			else:
+    with open(file_name, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            command = line.replace('\n', '')
+            commands = command.split(" ")
+            if commands[0] != 'add':
+                print("Invalid command was read in startup file:", commands[0])
+            elif len(commands) != 3:
+                print("Invalid format was read in startup file:", commands)
+            else:
                 if not is_ip_valid(commands[1]):
-				    print("Invalid IP address.")
+                    print("Invalid IP address.")
                 else:
                     ip = commands[1]
                     weight = commands[2]
