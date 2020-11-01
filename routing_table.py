@@ -143,8 +143,8 @@ class RoutingTable:
                 routing_info_to_destination.source_ip = message['source']
         
         for item in self.get_links_from_source(message['source']):
-            if item not in messages_distances_dic:
-                print("MESSAGES DISTANCES DIC", messages_distances_dic)
+            if item not in message['distances']:
+                print("MESSAGES DISTANCES DIC", message['distances'])
                 print("REMOVING OLD LINK", item)
                 self.links[self.current_ip].pop(item, None)
         
