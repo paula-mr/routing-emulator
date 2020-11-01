@@ -2,6 +2,8 @@ import sys
 import time
 import os
 import json
+import socket
+import getopt
 
 from datetime import datetime
 
@@ -14,18 +16,19 @@ from threading import Thread
 def main():
     print("Number of arguments:", len(sys.argv), "arguments.")
     print("Argument List:", str(sys.argv))
-    address = sys.argv[1]
-    pi_period = float(sys.argv[2])
-    if len(sys.argv) == 4:
-        filepath = sys.argv[3]
-        # todo: abrir e ler arquivo
+
+    address, pi_period, startup = get_startup_arguments()
+
     neighbors = Neighbors()
     routing_table = RoutingTable(address)
     server = Server(address)
     server.create_socket()
 
+    if startup:
+        read_file(startup, server.address)
+
     try:
-        update_routes = UpdateRoutesThread(pi_period, server, routing_table, address, neighbors)
+        update_routes = UpdateRoutesThread(pi_period, server, routing_table, server.address, neighbors)
         update_routes.start()
 
         remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table, neighbors)
@@ -38,6 +41,67 @@ def main():
     except KeyboardInterrupt:
         os._exit(0)
 
+
+def add_neighbor(ip, weight, current_address, neighbors, routing_table):
+    if not is_ip_valid(ip):
+        print(f"Ip {address} is invalid.")
+        return
+
+    neighbors.add(ip, weight)
+    routing_table.add(ip, weight, current_address, ip)
+
+def get_startup_arguments():
+    try:
+		opts, args = getopt.getopt(argv,'a:u:s:',[ 'addr=', 'update-period=', 'startup-commands=' ])
+	except getopt.GetoptError:
+		print("router.py <ADDR> <PERIOD> [STARTUP]")
+        os._exit(1)
+
+	if opts:
+		for opt, arg in opts:
+			if opt in ('-a', '--addr'):
+				address = arg
+			elif opt in ('-u', '--update-period'):
+				pi_period = arg
+			elif opt in ('-s', '--startup-commands'):
+				startup = arg
+	elif len(args) >= 2:
+		address = args[0]
+		pi_period = args[1]
+		if len(args) == 3:
+			startup = args[2]
+    
+    if not is_ip_valid(address):
+        print(f"Ip {address} is invalid.")
+        os._exit(1)
+    
+    return address, float(pi_period), startup
+
+def read_file(file_name, address, neighbors, routing_table):
+	with open(file_name, "r") as f:
+		lines = f.readlines()
+		for line in lines:
+			command = line.replace('\n', '')
+			commands = command.split(" ")
+			if commands[0] != 'add':
+				print("Invalid command was read in startup file:", commands[0])
+			if len(commands) != 3:
+				print("Invalid format was read in startup file:", commands)
+			else:
+				if is_ip_valid(commands[1]):
+					print("Invalid IP address.")
+				else:
+                    ip = commands[1]
+                    weight = commands[2]
+                    add_neighbor(ip, weight, address, neighbors, routing_table)
+
+
+def is_ip_valid(address):
+    try:
+        socket.inet_aton(address)
+        return True
+    except socket.error:
+        return False
 
 def listen_to_keyboard(neighbors, routing_table, server):
     while True:
@@ -52,8 +116,7 @@ def listen_to_keyboard(neighbors, routing_table, server):
             else: 
                 ip = command[1]
                 weight = int(command[2])
-                neighbors.add(ip, weight)
-                routing_table.add(ip, weight, server.address, ip)
+                add_neighbor(ip, weight, server.address, neighbors, routing_table)
         elif command[0] == "del":
             if len(command) != 2:
                 print('Invalid arguments.')
