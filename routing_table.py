@@ -112,7 +112,16 @@ class RoutingTable:
                 routing_info_to_destination.weight = weight
                 routing_info_to_destination.next_hop = message['source']
                 routing_info_to_destination.source_ip = message['source']
-            self.p_links()
+        
+        for item in get_links_from_source(message['source']):
+            if item not in messages_distances_dic:
+                self.links[self.current_ip].pop(item, None)
+        
+        self.p_links()
+
+    def get_links_from_source(self, source_ip):
+        links_from_source = [item for item in self.links[self.current_ip] if self.links[self.current_ip][item].source_ip == source_ip]
+        return links_from_source.copy()
 
     def p_links(self):
         for ip, neighbors in self.links.items():
