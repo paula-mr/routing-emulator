@@ -88,7 +88,7 @@ def read_file(file_name, address, neighbors, routing_table):
 			elif len(commands) != 3:
 				print("Invalid format was read in startup file:", commands)
 			elif is_ip_valid(commands[1]):
-					print("Invalid IP address.")
+				print("Invalid IP address.")
             else:
                 ip = commands[1]
                 weight = commands[2]
