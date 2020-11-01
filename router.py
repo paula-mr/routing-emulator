@@ -57,20 +57,20 @@ def get_startup_arguments():
         print("router.py <ADDR> <PERIOD> [STARTUP]")
         os._exit(1)
 
-	if opts:
-		for opt, arg in opts:
-			if opt in ('-a', '--addr'):
-				address = arg
-			elif opt in ('-u', '--update-period'):
-				pi_period = arg
-			elif opt in ('-s', '--startup-commands'):
-				startup = arg
-	elif len(args) >= 2:
-		address = args[0]
-		pi_period = args[1]
-		if len(args) == 3:
-			startup = args[2]
-    
+    if opts:
+        for opt, arg in opts:
+            if opt in ('-a', '--addr'):
+                address = arg
+            elif opt in ('-u', '--update-period'):
+                pi_period = arg
+            elif opt in ('-s', '--startup-commands'):
+                startup = arg
+    elif len(args) >= 2:
+        address = args[0]
+        pi_period = args[1]
+        if len(args) == 3:
+            startup = args[2]
+
     if not is_ip_valid(address):
         print(f"Ip {address} is invalid.")
         os._exit(1)
