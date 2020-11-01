@@ -89,9 +89,7 @@ class RemoveOldRoutesThread(Thread):
     def run(self):
         while True:
             time.sleep(self.pi_period)
-            print("checking routes")
             for route in self.routing_table.list_all():
-                print("route", route)
                 now = datetime.now()
                 diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:

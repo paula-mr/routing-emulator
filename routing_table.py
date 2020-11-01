@@ -38,6 +38,7 @@ class RoutingTable:
         return self.links[self.current_ip].copy()
 
     def delete(self, ip):
+        self.links[self.current_ip].pop(ip, None)
         self.links.pop(ip, None)
 
     @classmethod
