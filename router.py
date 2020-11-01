@@ -53,7 +53,7 @@ def listen_to_keyboard(neighbors, routing_table, server):
                 ip = command[1]
                 weight = int(command[2])
                 neighbors.add(ip, weight)
-                routing_table.add(ip, weight, address, ip)
+                routing_table.add(ip, weight, server.address, ip)
         elif command[0] == "del":
             if len(command) != 2:
                 print('Invalid arguments.')
@@ -66,7 +66,7 @@ def listen_to_keyboard(neighbors, routing_table, server):
                 print('Invalid arguments.')
             else:
                 destination_ip = command[1]
-                message = TraceMessage(address, destination_ip) #Object of type TraceMessage is not JSON serializable
+                message = TraceMessage(server.address, destination_ip) #Object of type TraceMessage is not JSON serializable
                 print('sending trace message', message.serialize())
                 next_hop = routing_table.get_next_hop(destination_ip)
                 if next_hop:
