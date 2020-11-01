@@ -24,15 +24,22 @@ def main():
     server = Server(address)
     server.create_socket()
 
-    update_routes = UpdateRoutesThread(pi_period, server, routing_table, address, neighbors)
-    update_routes.start()
+    try:
+        update_routes = UpdateRoutesThread(pi_period, server, routing_table, address, neighbors)
+        update_routes.start()
 
-    remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table, neighbors)
-    remove_old_routes.start()
+        remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table, neighbors)
+        remove_old_routes.start()
 
-    listener = Listener(server, routing_table)
-    listener.start()
+        listener = Listener(server, routing_table)
+        listener.start()
 
+        listen_to_keyboard(neighbors, routing_table, server)
+    except KeyboardInterrupt:
+        os._exit(0)
+
+
+def listen_to_keyboard(neighbors, routing_table, server):
     while True:
         command = input()
         command.strip()
