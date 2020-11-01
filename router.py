@@ -25,7 +25,7 @@ def main(argv):
     server.create_socket()
 
     if startup:
-        read_file(startup, server.address)
+        read_file(startup, server.address, neighbors, routing_table)
 
     try:
         update_routes = UpdateRoutesThread(pi_period, server, routing_table, server.address, neighbors)
@@ -44,7 +44,7 @@ def main(argv):
 
 def add_neighbor(ip, weight, current_address, neighbors, routing_table):
     if not is_ip_valid(ip):
-        print(f"Ip {address} is invalid.")
+        print(f"Ip {current_address} is invalid.")
         return
 
     neighbors.add(ip, weight)

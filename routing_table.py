@@ -42,19 +42,6 @@ class RoutingTable:
         return self.links[self.current_ip].copy()
 
     def delete(self, ip):
-        # newest_min_value = min(
-        #     map(
-        #         lambda info: info.weight,
-        #         filter(
-        #             lambda dic_received_from_ip: dic_received_from_ip is not None, 
-        #             map(
-        #                 lambda dic: dic.get(ip, None), 
-        #                 self.links.values()
-        #             )
-        #         )
-        #     ),
-        #     default=math.inf
-        # )
         self.links.pop(ip, None)
         self.links[self.current_ip][ip].weight = math.inf
 
