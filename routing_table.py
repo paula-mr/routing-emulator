@@ -119,11 +119,7 @@ class RoutingTable:
             routing_info_to_destination = self.links[self.current_ip][destination]
             routing_info_to_destination.last_updated_at = now
             current_optimal_weight = self.links[self.current_ip][destination].weight
-            # if not message['source'] in self.links[self.current_ip]:
-                # weight_to_source = math.inf
-            # else:
-                # weight_to_source = self.links[self.current_ip][message['source']].weight
-            # weight_via_source = weight_to_source + weight
+
             if (weight < current_optimal_weight):
                 routing_info_to_destination.weight = weight
                 routing_info_to_destination.next_hop = message['source']
@@ -131,8 +127,6 @@ class RoutingTable:
         
         for item in self.get_links_from_source(message['source']):
             if item not in message['distances']:
-                print("MESSAGES DISTANCES DIC", message['distances'])
-                print("REMOVING OLD LINK", item)
                 self.delete(item)
         
         self.p_links()
@@ -142,8 +136,6 @@ class RoutingTable:
         return links_from_source.copy()
 
     def p_links(self):
-        # for ip, neighbors in self.links.items():
-            # print(f'rotas recebidas de {ip}:')
         neighbors = self.links[self.current_ip]
         for neighbor, route_info in neighbors.items():
             print(f'{neighbor}->{route_info.weight} source ip -> {route_info.source_ip}')
