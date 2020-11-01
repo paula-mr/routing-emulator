@@ -1,6 +1,7 @@
 import sys
 import time
 import os
+import json
 
 from datetime import datetime
 
@@ -41,31 +42,26 @@ def main():
         elif command[0] == "add":
             if len(command) != 3:
                 print('Invalid arguments.')
-                return
-
-            ip = command[1]
-            weight = int(command[2])
-            neighbors.add(ip, weight)
-            routing_table.add(ip, weight, address, ip)
-            return
+            else: 
+                ip = command[1]
+                weight = int(command[2])
+                neighbors.add(ip, weight)
+                routing_table.add(ip, weight, address, ip)
         elif command[0] == "del":
             if len(command) != 2:
                 print('Invalid arguments.')
-                return
-
-            ip = command[1]
-            neighbors.delete(ip)
-            routing_table.delete(ip)
-            return
+            else:
+                ip = command[1]
+                neighbors.delete(ip)
+                routing_table.delete(ip)
         elif command[0] == "trace":
             if len(command) != 2:
                 print('Invalid arguments.')
-                return
-
-            destination_ip = command[1]
-            message = TraceMessage(address, destination_ip)
-            server.send_message(address, message)
-            return
+            else:
+                destination_ip = command[1]
+                message = TraceMessage(address, destination_ip)
+                print('sending trace message', message.serialize())
+                server.send_message(destination_ip, message.serialize())
 
 
 class Listener(Thread):
@@ -79,15 +75,21 @@ class Listener(Thread):
             message, _ = self.server.receive_message()
             message_type = message.get('type', None)
             if message_type == "trace":
-                message, destination = self.routing_table.handle_trace(message, self.server.address)
+                message, destination = self.routing_table.handle_trace(message)
                 if destination:
-                    self.server.send_message(destination, message.serialize())
+                    self.server.send_message(destination, json.dumps(message))
+                else:
+                    print('trace sem destino')
             if message_type == "update":
                 self.routing_table.handle_update(message)
             if message_type == "data":
                 message, destination = self.routing_table.handle_data(message)
                 if destination:
-                    self.server.send_message(destination, message.serialize())
+                    self.server.send_message(destination, json.dumps(message))
+                else:
+                    print('data sem destino')
+            if not message_type:
+                print('tipo desconhecido de mensagem! ! !')
 
 
 

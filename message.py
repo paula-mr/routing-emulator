@@ -22,7 +22,7 @@ class DataMessage(Message):
 class TraceMessage(Message):
     def __init__(self, source, destination):
         Message.__init__(self, "trace", source, destination)
-        self.hops = []
+        self.hops = [source]
 
 
 class UpdateMessage(Message):
