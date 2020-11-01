@@ -57,6 +57,7 @@ def get_startup_arguments(argv):
         print("router.py <ADDR> <PERIOD> [STARTUP]")
         os._exit(1)
 
+    startup = None
     if opts:
         for opt, arg in opts:
             if opt in ('-a', '--addr'):
