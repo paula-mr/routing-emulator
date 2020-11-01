@@ -134,6 +134,8 @@ def listen_to_keyboard(neighbors, routing_table, server):
                 next_hop = routing_table.get_next_hop(destination_ip)
                 if next_hop:
                     server.send_message(next_hop, message.serialize())
+        else:
+            print(f"Unknown command {command[0]}")
 
 
 class Listener(Thread):
