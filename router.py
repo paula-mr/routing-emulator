@@ -1,5 +1,6 @@
 import sys
 import time
+import os
 
 from datetime import datetime
 
@@ -36,7 +37,7 @@ def main():
         command.strip()
         command = command.split(' ')
         if command[0] == "quit":
-            return
+            os._exit(0)
         elif command[0] == "add":
             if len(command) != 3:
                 print('Invalid arguments.')

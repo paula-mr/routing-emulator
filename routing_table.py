@@ -70,6 +70,7 @@ class RoutingTable:
             return message, self.get_next_hop(message['destination'])
 
     def handle_trace(self, message):
+        print('EXECUTANDO TRACE', message)
         # sempre adicionar proprio ip à lista de hops do trace (message.hops)
         message.get('hops', []).append(self.current_ip)
         # verificar se é destino do trace
@@ -91,21 +92,33 @@ class RoutingTable:
 
     def handle_update(self, message):
         now = datetime.now()
-        #todo transformar message.distances em dicionario de RoutingInformation
+        #atualizar entradas da linha de messageSource no nosso dv
         messages_distances_dic = message['distances'].items()
         self.links[message['source']] = self.create_distances_info_dic(messages_distances_dic, message['source'])
-        weight_to_source = self.links[self.current_ip][message['source']].weight
-        for destination, weight in messages_distances_dic:    
-            #se nó x (current) recebeu de A:
-            #para cada vizinho v de A:
-            routing_info_to_destination = self.links[self.current_ip]
+        #para cada vizinho v de message.source:
+        print('EXECUTANDO HANDLE UPADTE')
+        for destination, weight in messages_distances_dic:
+            if destination not in self.links[self.current_ip]:
+                self.links[self.current_ip][destination] = RoutingInformation(weight, message['source'], message['source'])
+            routing_info_to_destination = self.links[self.current_ip][destination]
             routing_info_to_destination.last_updated_at = now
             current_optimal_weight = self.links[self.current_ip][destination].weight
-            weight_via_source = weight_to_source + weight
-            if (weight_via_source < current_optimal_weight):
-                routing_info_to_destination.weight = weight_via_source
+            # if not message['source'] in self.links[self.current_ip]:
+                # weight_to_source = math.inf
+            # else:
+                # weight_to_source = self.links[self.current_ip][message['source']].weight
+            # weight_via_source = weight_to_source + weight
+            if (weight < current_optimal_weight):
+                routing_info_to_destination.weight = weight
                 routing_info_to_destination.next_hop = message['source']
                 routing_info_to_destination.source_ip = message['source']
+            self.p_links()
+
+    def p_links(self):
+        for ip, neighbors in self.links.items():
+            print(f'rotas conhecidas de {ip}:')
+            for neighbor, route_info in neighbors.items():
+                print(f'{neighbor}->{route_info.weight}')
 
     def distance_tuple_to_routing_info(self, weight, source_ip):
         routing_info = RoutingInformation(weight, None, source_ip)
