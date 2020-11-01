@@ -18,7 +18,7 @@ def main():
         filepath = sys.argv[3]
         # todo: abrir e ler arquivo
     neighbors = Neighbors()
-    routing_table = RoutingTable()
+    routing_table = RoutingTable(address)
     server = Server(address)
     server.create_socket()
 
@@ -29,7 +29,7 @@ def main():
     remove_old_routes.start()
 
     while True:
-        command = input('')
+        command = input()
         command.strip()
         command = command.split(' ')
         if command[0] == "quit":
@@ -89,9 +89,11 @@ class RemoveOldRoutesThread(Thread):
     def run(self):
         while True:
             time.sleep(self.pi_period)
+            print("checking routes")
             for route in self.routing_table.list_all():
+                print("route", route)
                 now = datetime.now()
-                diff_time = now - self.routing_table.links[route].last_updated_at
+                diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
                     print("Deleting ", route)
                     self.routing_table.delete(route)

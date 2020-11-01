@@ -1,34 +1,51 @@
 from datetime import datetime
 from functools import reduce
-
+import math
 
 class RoutingInformation:
-    def __init__(self, weight, source_ip, next_hop):
+    def __init__(self, weight, next_hop, source_ip):
         self.weight = weight
         self.last_updated_at = datetime.now()
-        self.source_ip = source_ip
         self.next_hop = next_hop
-
-
-def passes_split_horizon(destination_ip, key_value):
-    return key_value[0] != destination_ip and key_value[1].source_ip != destination_ip
+        self.source_ip = source_ip
 
 
 class RoutingTable:
-    def __init__(self):
+    def __init__(self, current_ip):
         self.links = {}
+        self.current_ip = current_ip
+        self.links[current_ip] = {}
+        self.links[current_ip][current_ip] = RoutingInformation(0, None, current_ip)
 
     def add(self, ip, weight, source_ip, next_hop):
-        self.links[ip] = RoutingInformation(weight, source_ip, next_hop)
-    
+        routingInformation = RoutingInformation(weight, next_hop, source_ip)
+        if not self.links[source_ip]:
+            self.links[source_ip] = { ip: routingInformation }
+            for neighborTo in self.links.items():
+                neighborTo[ip]: RoutingInformation(math.inf, None, source_ip)
+        else:
+            self.links[source_ip][ip] = routingInformation
+
+    def get(self, ip):
+        return self.links.get(self.current_ip, {}).get(ip, None)
+
     def list_all(self):
-        return self.links.copy()
+        neighbors = self.links[self.current_ip].copy()
+        neighbors.pop(self.current_ip, None)
+        return neighbors
+    
+    def list_dv(self):
+        return self.links[self.current_ip].copy()
 
     def delete(self, ip):
         self.links.pop(ip, None)
 
+    @classmethod
+    def passes_split_horizon(cls, destination_ip, route):
+        return route[0] != destination_ip and route[1] != destination_ip
+
     def split_horizon(self, destination_ip):
-        return [item for item in self.links.items() if passes_split_horizon(destination_ip, item)]
+        return [item for item in self.list_dv().items() if self.passes_split_horizon(destination_ip, item)]
 
     def generate_distances(self, neighbor_ip, neighbor_link_weight):
         def extract_info(accumulated_dic, table_row_info):
