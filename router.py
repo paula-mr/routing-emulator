@@ -34,7 +34,7 @@ def main(argv):
         remove_old_routes = RemoveOldRoutesThread(pi_period, routing_table, neighbors)
         remove_old_routes.start()
 
-        listener = Listener(server, routing_table)
+        listener = Listener(server, routing_table, neighbors)
         listener.start()
 
         listen_to_keyboard(neighbors, routing_table, server)
@@ -131,7 +131,8 @@ def listen_to_keyboard(neighbors, routing_table, server):
             else:
                 ip = command[1]
                 neighbors.delete(ip)
-                routing_table.delete(ip)
+                routing_table.delete(ip, neighbors.links)
+                routing_table.delete_related_routes(ip, neighbors.links)
         elif command[0] == "trace":
             if len(command) != 2:
                 print('Invalid arguments.')
@@ -147,10 +148,11 @@ def listen_to_keyboard(neighbors, routing_table, server):
 
 
 class Listener(Thread):
-    def __init__(self, server, routing_table):
+    def __init__(self, server, routing_table, neighbors):
         Thread.__init__(self)
         self.server = server
         self.routing_table = routing_table
+        self.neighbors = neighbors
     
     def run(self):
         while True:
@@ -158,16 +160,16 @@ class Listener(Thread):
             message_type = message.get('type', None)
             if message_type == "trace":
                 trace_message, destination = self.routing_table.handle_trace(message)
-                reroute_message(self.server, self.routing_table, destination, message, trace_message)
+                route_message(self.server, self.routing_table, destination, message, trace_message)
             if message_type == "update":
-                self.routing_table.handle_update(message)
+                self.routing_table.handle_update(message, self.neighbors.links)
             if message_type == "data":
                 data_message, destination = self.routing_table.handle_data(message)
-                reroute_message(self.server, self.routing_table, destination, message, data_message)
+                route_message(self.server, self.routing_table, destination, message, data_message)
             if not message_type:
                 print('Unknown message type')
 
-def reroute_message(server, routing_table, destination, original_message, new_message):
+def route_message(server, routing_table, destination, original_message, new_message):
     if destination:
         server.send_message(destination, json.dumps(new_message))
     elif original_message['destination'] != server.address:
@@ -177,7 +179,8 @@ def send_destination_not_found_message(server, routing_table, message):
     destination_not_found_message = DataMessage(server.address, message['source'])
     destination_not_found_message.payload = {'message': f"No route found for source {message['source']}"}
     next_hop = routing_table.get_next_hop(destination_not_found_message.destination)
-    server.send_message(next_hop, destination_not_found_message.serialize())
+    if next_hop:
+        server.send_message(next_hop, destination_not_found_message.serialize())
 
 
 class UpdateRoutesThread(Thread):
@@ -209,15 +212,17 @@ class RemoveOldRoutesThread(Thread):
                 now = datetime.now()
                 diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
+                    print("DELETING", route)
                     self.neighbors.delete(route)
-                    self.routing_table.delete(route)
+                    self.routing_table.delete(route, self.neighbors.links)
+                    self.routing_table.delete_related_routes(route, self.neighbors.links)
                     
 
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
     messages = [
         # create_update_message(routing_table, current_ip, neighbor[0], routing_table.links[neighbor[0]][current_ip].weight)
-        create_update_message(routing_table, current_ip, neighbor[0], neighbor[1])
+        create_update_message(routing_table, current_ip, neighbor[0])
         for neighbor in neighbors.links.items()
     ]
     for message in messages:
@@ -225,10 +230,10 @@ def send_update_messages(server, routing_table, current_ip, neighbors):
         server.send_message(message.destination, message.serialize())
 
 
-def create_update_message(table, current_ip, destination_ip, destination_link_weight):
+def create_update_message(table, current_ip, destination_ip):
     message = UpdateMessage(current_ip, destination_ip)
-    distances = table.generate_distances(destination_ip, destination_link_weight)
-    distances[current_ip] = destination_link_weight
+    distances = table.generate_distances(destination_ip)
+    distances[current_ip] = 0
     message.distances = distances
     return message
 

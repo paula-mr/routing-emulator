@@ -22,12 +22,7 @@ class RoutingTable:
         self.links[current_ip][current_ip] = RoutingInformation(0, None, current_ip)
 
     def add(self, ip, weight, source_ip, next_hop):
-        routingInformation = RoutingInformation(weight, next_hop, source_ip)
-        self.links[self.current_ip][ip] = routingInformation
-        # if not self.links.get(ip, None):
-        #     self.links[ip] = { source_ip: routingInformation }
-        # else:
-        #     self.links[ip][source_ip] = routingInformation
+        self.links[self.current_ip][ip] = RoutingInformation(weight, next_hop, source_ip)
 
     def get(self, ip):
         return self.links.get(self.current_ip, {}).get(ip, None)
@@ -37,7 +32,7 @@ class RoutingTable:
         neighbors.pop(self.current_ip, None)
         return neighbors
 
-    def delete(self, ip):
+    def delete(self, ip, neighbors):
         self.links.pop(ip, None)
         self.links[self.current_ip][ip].weight = math.inf
 
@@ -51,7 +46,12 @@ class RoutingTable:
                 continue
 
         if newest_min_value == math.inf:
-            self.links[self.current_ip].pop(ip, None)
+            if ip in neighbors:
+                self.links[self.current_ip][ip].weight = neighbors[ip]
+                self.links[self.current_ip][ip].source_ip = self.current_ip
+                self.links[self.current_ip][ip].next_hop = ip
+            else:
+                self.links[self.current_ip].pop(ip, None)
         else:
             self.links[self.current_ip][ip].weight = newest_min_value
             self.links[self.current_ip][ip].source_ip = source
@@ -67,10 +67,10 @@ class RoutingTable:
     def passes_split_horizon(cls, destination_ip, route):
         return route[0] != destination_ip and route[1].source_ip != destination_ip
 
-    def generate_distances(self, neighbor_ip, neighbor_link_weight):
+    def generate_distances(self, neighbor_ip):
         dic = {}
         for table_row_info in self.split_horizon(neighbor_ip):
-            dic[table_row_info[0]] = table_row_info[1].weight + neighbor_link_weight
+            dic[table_row_info[0]] = table_row_info[1].weight
         return dic
 
     def handle_data(self, message):
@@ -83,7 +83,6 @@ class RoutingTable:
             return message, self.get_next_hop(message['destination'])
 
     def handle_trace(self, message):
-        print('EXECUTANDO TRACE', message)
         # sempre adicionar proprio ip à lista de hops do trace (message.hops)
         message.get('hops', []).append(self.current_ip)
         # verificar se é destino do trace
@@ -103,22 +102,28 @@ class RoutingTable:
         else:
             return route.next_hop
 
-    def handle_update(self, message):
+    def get_link_weight(self, neighbors, source):
+        return neighbors.get(source, math.inf)
+
+    def delete_related_routes(self, source_ip, neighbors):
+        for item in self.get_links_from_source(source_ip):
+            print('DELETING ITEM', item)
+            self.delete(item, neighbors)
+
+    def handle_update(self, message, neighbors):
         now = datetime.now()
+        print('EXECUTANDO HANDLE UPADTE', message)
         #atualizar entradas da linha de messageSource no nosso dv
         messages_distances_dic = message['distances'].items()
-        #self.links[message['source']] = self.create_distances_info_dic(messages_distances_dic, message['source'])
-        
-        # for known_ip in self.links[self.current_ip]:
-        #     messages_distances_dic = message['distances'].items()
-        #     self.links[message['source']][known_ip].weight = math.inf 
-        #     self.links[message['source']][known_ip].last_updated_at = now
 
         for item in self.get_links_from_source(message['source']):
             if item not in message['distances']:
-                self.delete(item)
+                print('DELETING ITEM', item)
+                self.links[message['source']].pop(item, None)
+                self.delete(item, neighbors)
         
         for updated_ip, new_weight in messages_distances_dic:
+            new_weight = new_weight + self.get_link_weight(neighbors, message['source'])
             if message['source'] not in self.links:
                 self.links[message['source']] = {}
             if updated_ip not in self.links[message['source']]:
@@ -126,10 +131,11 @@ class RoutingTable:
             else:
                 self.links[message['source']][updated_ip].weight = new_weight
                 self.links[message['source']][updated_ip].last_updated_at = now
+                self.links[message['source']][updated_ip].source_ip = message['source']
 
         #para cada vizinho v de message.source:
-        print('EXECUTANDO HANDLE UPADTE')
         for destination, weight in messages_distances_dic:
+            weight = weight + self.get_link_weight(neighbors, message['source'])
             if destination not in self.links[self.current_ip]:
                 self.links[self.current_ip][destination] = RoutingInformation(weight, message['source'], message['source'])
             routing_info_to_destination = self.links[self.current_ip][destination]
@@ -145,6 +151,7 @@ class RoutingTable:
 
     def get_links_from_source(self, source_ip):
         links_from_source = [item for item in self.links[self.current_ip] if self.links[self.current_ip][item].source_ip == source_ip]
+        print('LINKS FROM SOURCE', links_from_source)
         return links_from_source.copy()
 
     def p_links(self):
