@@ -69,6 +69,10 @@ def get_startup_arguments(argv):
         pi_period = args[1]
         if len(args) == 3:
             startup = args[2]
+    else:
+        print('Invalid arguments')
+        print('router.py <IP_ADDRESS> <PI_PERIOD> <STARTUP>')
+        os._exit(1)
 
     if not is_ip_valid(address):
         print(f"Ip {address} is invalid.")
