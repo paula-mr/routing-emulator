@@ -144,5 +144,4 @@ class RoutingTable:
 
     def get_links_from_source(self, source_ip):
         links_from_source = [item for item in self.links[self.current_ip] if self.links[self.current_ip][item].source_ip == source_ip]
-        print('LINKS FROM SOURCE', links_from_source)
         return links_from_source.copy()
