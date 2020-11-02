@@ -42,8 +42,6 @@ class RoutingTable:
                 if (inner_dic[ip].weight < newest_min_value):
                     source = neighbor_ip
                     newest_min_value = inner_dic[ip].weight
-            else:
-                continue
         
         if ip in neighbors and neighbors[ip] < newest_min_value:
             self.links[self.current_ip][ip].weight = neighbors[ip]
