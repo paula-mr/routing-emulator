@@ -100,6 +100,9 @@ def read_file(file_name, address, neighbors, routing_table):
 
 
 def is_ip_valid(address):
+    if not address:
+        return False
+
     try:
         socket.inet_aton(address)
         return True
