@@ -35,7 +35,7 @@ class RoutingTable:
     def delete(self, ip, neighbors):
         self.links.pop(ip, None)
         self.links[self.current_ip][ip].weight = math.inf
-
+        
         newest_min_value = math.inf
         for neighbor_ip, inner_dic in self.links.items():
             if ip in inner_dic:
@@ -44,14 +44,13 @@ class RoutingTable:
                     newest_min_value = inner_dic[ip].weight
             else:
                 continue
-
-        if newest_min_value == math.inf:
-            if ip in neighbors:
-                self.links[self.current_ip][ip].weight = neighbors[ip]
-                self.links[self.current_ip][ip].source_ip = self.current_ip
-                self.links[self.current_ip][ip].next_hop = ip
-            else:
-                self.links[self.current_ip].pop(ip, None)
+        
+        if ip in neighbors and neighbors[ip] < newest_min_value:
+            self.links[self.current_ip][ip].weight = neighbors[ip]
+            self.links[self.current_ip][ip].source_ip = self.current_ip
+            self.links[self.current_ip][ip].next_hop = ip
+        elif newest_min_value == math.inf:
+            self.links[self.current_ip].pop(ip, None)
         else:
             self.links[self.current_ip][ip].weight = newest_min_value
             self.links[self.current_ip][ip].source_ip = source
@@ -118,7 +117,6 @@ class RoutingTable:
 
         for item in self.get_links_from_source(message['source']):
             if item not in message['distances']:
-                print('DELETING ITEM', item)
                 self.links[message['source']].pop(item, None)
                 self.delete(item, neighbors)
         
