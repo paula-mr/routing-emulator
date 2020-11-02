@@ -9,7 +9,7 @@ from datetime import datetime
 
 from neighbors import Neighbors
 from routing_table import RoutingTable
-from message import UpdateMessage, TraceMessage
+from message import UpdateMessage, TraceMessage, DataMessage
 from server import Server
 from threading import Thread
 
@@ -137,7 +137,7 @@ def listen_to_keyboard(neighbors, routing_table, server):
                 print('Invalid arguments.')
             else:
                 destination_ip = command[1]
-                message = TraceMessage(server.address, destination_ip) #Object of type TraceMessage is not JSON serializable
+                message = TraceMessage(server.address, destination_ip)
                 print('sending trace message', message.serialize())
                 next_hop = routing_table.get_next_hop(destination_ip)
                 if next_hop:
@@ -157,22 +157,27 @@ class Listener(Thread):
             message, _ = self.server.receive_message()
             message_type = message.get('type', None)
             if message_type == "trace":
-                message, destination = self.routing_table.handle_trace(message)
-                if destination:
-                    self.server.send_message(destination, json.dumps(message))
-                else:
-                    print('trace sem destino')
+                trace_message, destination = self.routing_table.handle_trace(message)
+                reroute_message(self.server, self.routing_table, destination, message, trace_message)
             if message_type == "update":
                 self.routing_table.handle_update(message)
             if message_type == "data":
-                message, destination = self.routing_table.handle_data(message)
-                if destination:
-                    self.server.send_message(destination, json.dumps(message))
-                else:
-                    print('data sem destino')
+                data_message, destination = self.routing_table.handle_data(message)
+                reroute_message(self.server, self.routing_table, destination, message, data_message)
             if not message_type:
-                print('tipo desconhecido de mensagem! ! !')
+                print('Unknown message type')
 
+def reroute_message(server, routing_table, destination, original_message, new_message):
+    if destination:
+        server.send_message(destination, json.dumps(new_message))
+    elif original_message['destination'] != server.address:
+        send_destination_not_found_message(server, routing_table, original_message)
+
+def send_destination_not_found_message(server, routing_table, message):
+    destination_not_found_message = DataMessage(server.address, message['source'])
+    destination_not_found_message.payload = {'message': f"No route found for source {message['source']}"}
+    next_hop = routing_table.get_next_hop(destination_not_found_message.destination)
+    server.send_message(next_hop, destination_not_found_message.serialize())
 
 
 class UpdateRoutesThread(Thread):
@@ -204,7 +209,6 @@ class RemoveOldRoutesThread(Thread):
                 now = datetime.now()
                 diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
-                    print("Deleted ", route)
                     self.neighbors.delete(route)
                     self.routing_table.delete(route)
                     
@@ -212,10 +216,12 @@ class RemoveOldRoutesThread(Thread):
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
     messages = [
+        # create_update_message(routing_table, current_ip, neighbor[0], routing_table.links[neighbor[0]][current_ip].weight)
         create_update_message(routing_table, current_ip, neighbor[0], neighbor[1])
         for neighbor in neighbors.links.items()
     ]
     for message in messages:
+        print(message.serialize())
         server.send_message(message.destination, message.serialize())
 
 
