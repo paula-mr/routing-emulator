@@ -75,7 +75,7 @@ class RoutingTable:
 
     def handle_data(self, message):
         if message['destination'] == self.current_ip:
-            # se current for destino, printa a mensagem
+            # se este ip for o destino, printa a mensagem
             print(message['payload'])
             return None, None
         else:
@@ -112,13 +112,11 @@ class RoutingTable:
 
     def handle_update(self, message, neighbors):
         now = datetime.now()
-        print('EXECUTANDO HANDLE UPADTE', message)
-        #atualizar entradas da linha de messageSource no nosso dv
         messages_distances_dic = message['distances'].items()
 
         for item in self.get_links_from_source(message['source']):
             if item not in message['distances']:
-                print('DELETING ITEM', item)
+                # realizando deleção do registro a um vizinho
                 self.links[message['source']].pop(item, None)
                 self.delete(item, neighbors)
         
@@ -135,37 +133,20 @@ class RoutingTable:
 
         #para cada vizinho v de message.source:
         for destination, weight in messages_distances_dic:
+            # considerando peso do enlace para cálculo do peso até o destino
             weight = weight + self.get_link_weight(neighbors, message['source'])
             if destination not in self.links[self.current_ip]:
                 self.links[self.current_ip][destination] = RoutingInformation(weight, message['source'], message['source'])
             routing_info_to_destination = self.links[self.current_ip][destination]
             routing_info_to_destination.last_updated_at = now
+            # Bellman-Ford
             current_optimal_weight = self.links[self.current_ip][destination].weight
-
             if (weight < current_optimal_weight):
                 routing_info_to_destination.weight = weight
                 routing_info_to_destination.next_hop = message['source']
                 routing_info_to_destination.source_ip = message['source']
-        
-        self.p_links()
 
     def get_links_from_source(self, source_ip):
         links_from_source = [item for item in self.links[self.current_ip] if self.links[self.current_ip][item].source_ip == source_ip]
         print('LINKS FROM SOURCE', links_from_source)
         return links_from_source.copy()
-
-    def p_links(self):
-        for ip, neighbors in self.links.items():
-            print(f'Rotas conhecidas de {ip}')
-            for neighbor, route_info in neighbors.items():
-                print(f'{neighbor}->{route_info.weight} source ip -> {route_info.source_ip}')
-
-    def distance_tuple_to_routing_info(self, weight, source_ip):
-        routing_info = RoutingInformation(weight, None, source_ip)
-        return routing_info
-
-    def create_distances_info_dic(self, distances, source_ip):
-        dic = {}
-        for (ip, weight) in distances:
-            dic[ip] = self.distance_tuple_to_routing_info(weight, source_ip)
-        return dic

@@ -221,12 +221,10 @@ class RemoveOldRoutesThread(Thread):
 
 def send_update_messages(server, routing_table, current_ip, neighbors):
     messages = [
-        # create_update_message(routing_table, current_ip, neighbor[0], routing_table.links[neighbor[0]][current_ip].weight)
         create_update_message(routing_table, current_ip, neighbor[0])
         for neighbor in neighbors.links.items()
     ]
     for message in messages:
-        print(message.serialize())
         server.send_message(message.destination, message.serialize())
 
 
