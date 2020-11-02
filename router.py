@@ -93,7 +93,7 @@ def read_file(file_name, address, neighbors, routing_table):
             elif len(commands) != 3:
                 print("Invalid format was read in startup file:", commands)
             elif not is_ip_valid(commands[1]):
-                    print("Invalid IP address.")
+                print("Invalid IP address.")
             else:
                 ip = commands[1]
                 weight = int(commands[2])
@@ -208,7 +208,6 @@ class RemoveOldRoutesThread(Thread):
                 now = datetime.now()
                 diff_time = now - self.routing_table.get(route).last_updated_at
                 if diff_time.seconds >= 4*self.pi_period:
-                    print("DELETING", route)
                     self.neighbors.delete(route)
                     self.routing_table.delete(route, self.neighbors.links)
                     self.routing_table.delete_related_routes(route, self.neighbors.links)
@@ -352,7 +351,6 @@ class RoutingTable:
 
     def delete_related_routes(self, source_ip, neighbors):
         for item in self.get_links_from_source(source_ip):
-            print('DELETING ITEM', item)
             self.delete(item, neighbors)
 
     def handle_update(self, message, neighbors):
@@ -428,10 +426,6 @@ class DataMessage(Message):
     def __init__(self, source, destination):
         Message.__init__(self, "data", source, destination)
         self.payload = None
-
-    def print_payload(self):
-        print(self.payload)
-
 
 class TraceMessage(Message):
     def __init__(self, source, destination):
